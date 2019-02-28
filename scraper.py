@@ -11,19 +11,25 @@ import urllib2
 import pickle
 import sys
 
-
-def progress(count, total, status=''):
+def progress(iteration, total, prefix ='', suffix = '', decimals = 1, length = 50, fill = '='):
     """
-    taken from https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
+    Call in a loop to create terminal progress bar
+    @params:
+    iteration   - Required  : current iteration (Int)
+    total       - Required  : total iterations (Int)
+    prefix      - Optional  : prefix string (Str)
+    suffix      - Optional  : suffix string (Str)
+    decimals    - Optional  : positive number of decimals in percent complete (Int)
+    length      - Optional  : character length of bar (Int)
+    fill        - Optional  : bar fill character (Str)
     """
-    bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
-
-    percents = round(100.0 * count / float(total), 1)
-    bar = '=' * filled_len + '-' * (bar_len - filled_len)
-
-    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
-    sys.stdout.flush()
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print "\r%s |%s| %s%% %s"%(prefix, bar, percent, suffix),'\r',
+    # Print New Line on Complete
+    if iteration == total:
+        print()
 
 #get page
 base_url = 'http://www.cuc.md/'
@@ -76,7 +82,7 @@ for tr in soup.find_all('tr'):
     filename  = file_match.group("filename")
     extension = file_match.group("extension")
 
-    progress(count,total,filename+"."+extension)
+    progress(count,total,suffix=filename+"."+extension)
 
     j=0
     if num_cells == 8:
@@ -111,10 +117,10 @@ for tr in soup.find_all('tr'):
         filedata = urllib2.urlopen(full_link.encode("utf-8"))
         datatowrite = filedata.read()
         with open('./download/%s.%s'%(filename,extension), 'wb') as f:
-                f.write(datatowrite)
+            f.write(datatowrite)
+            count+=1
         with open('./info/%s.info'%filename,'wb') as f:
             pickle.dump(question_info,f)
-        count+=1
     except:
         pass
 

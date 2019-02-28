@@ -7,6 +7,7 @@ mkdir -p ./unprocessed/txt/empty
 mkdir -p ./unprocessed/txt/blocky/
 mkdir -p ./unprocessed/processed/
 mkdir -p ./download/
+mkdir -p ./info/
 
 echo "Downloading Documents:"
 python ./scraper.py

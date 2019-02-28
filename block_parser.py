@@ -4,7 +4,7 @@ import os
 import pickle
 import sys
 
-question_pattern  = re.compile(r'^((I|Î)ntrebare(a)?)?(:)?(\s)*\d{1,2}(\s)*(;|\.|\-|:|\)?)?',re.I)
+question_pattern  = re.compile(r'^((I|Î)ntrebare(a)?|#)?(:)?(\s)*\d{1,2}(\s)*(;|\.|\-|:|\)?)?',re.I)
 answer_pattern    = re.compile(r'^(((Ră|Ra)spuns)|(R\.S|Rsp|R))\s*(\.|:|-|=)',re.I)
 comment_pattern   = re.compile(r'^((Comentari[ui]|C)(;|:|-|\.)\s*)', re.I)
 source_pattern    = re.compile(r'^(surs(ă|a|e))\s*(:|-)\s*', re.I)
@@ -38,7 +38,7 @@ def get_blocks(lines):
     if empty_indices[0] == 0:
         to_delete.append(0)
     for i in range(len(empty_indices)-2,0,-1):
-        if empty_indices[i-1] == empty_indices[i] - 1 or empty_indices[i+1] == empty_indices[i] + 1:
+        if empty_indices[i-1] == empty_indices[i] - 1 and empty_indices[i+1] == empty_indices[i] + 1:
             to_delete.append(i)
 
     for i in to_delete:

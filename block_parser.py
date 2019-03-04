@@ -4,7 +4,7 @@ import os
 import pickle
 import sys
 
-question_pattern  = re.compile(r'^((I|Î)ntrebare(a)?|#)?(:)?(\s)*\d{1,2}(\s)*(;|\.|\-|:|\)?)?',re.I)
+question_pattern  = re.compile(r'^((I|Î)ntrebare(a)?|#)?(:)?(\s)*((de)?\srezev[aă])?\d{1,2}(\s)*(;|\.|\-|:|\)?)?',re.I)
 answer_pattern    = re.compile(r'^(((Ră|Ra)spuns)|(R\.S|Rsp|R))\s*(\.|:|-|=)',re.I)
 comment_pattern   = re.compile(r'^((Comentari[ui]|C)(;|:|-|\.)\s*)', re.I)
 source_pattern    = re.compile(r'^(surs(ă|a|e))\s*(:|-)\s*', re.I)
@@ -192,14 +192,16 @@ def parse_file(filename,verbose=False):
 def parse_all():
     total = 0
     successful = 0
+    all_question_objects = []
     for filename  in os.listdir("./unprocessed/txt/"):
         if not filename.endswith(".txt"):
             continue
         (question_objects,num_questions) = parse_file("./unprocessed/txt/%s"%filename)
+        all_question_objects.append(question_objects)
         total += num_questions
         successful += len(question_objects)
-
     print("%d/%d SUCCESSFUL"%(successful ,total))
+    return all_question_objects
 
 
 if __name__ == '__main__':

@@ -1,22 +1,25 @@
-# cuc_parse
-Acest program parsează documente ce conțin întrebari de ”Ce? Unde? Când?”.
+# CUC Parse
 
-# Instalare
-Primul past este executarea scirptului "setup.sh". Acest script creaza dosarele necesare, descară toate documentele de pe http://www.cuc.md/content/blogcategory/163/187/lang,ro/ și le convertește în format text.
+This program parses documents that contain questions for Who? When? Where? game, commonly known as "Ce? Unde? Când?" or simply CUC.
 
-```
-git clone https://github.com/shervlad/cuc_parse
-cd cuc_parse
-sh setup.sh
+### Requirements & usage
+
+Requirements:
+  - Python 3
+
+Install:
+
+```bash
+# create directories, download all docs and convert them to text form
+./setup.sh
 ```
 
-# Parser
-Implementarea parserului este în _block_parser.py_
-Pentru a parsa toate fișierele:
-```
+### Usage
+
+```bash
+# parse all files
 python block_parser.py all
-```
-Pentru a parsa un singur fisier:
-```
-python block_parser.py <num_fisier>
+
+# parse a single file
+python block_parser.py <filename>
 ```

@@ -17,9 +17,12 @@ Install:
 ### Usage
 
 ```bash
-# parse all files
-python block_parser.py all
+# parse all files & save as JSON to a file
+python block_parser.py --all --out output_file
 
-# parse a single file
-python block_parser.py <filename>
+# parse a single file & save as JSON to a file
+python block_parser.py --in FILE --out output_file
+
+# get help
+python block_parser.py --help
 ```

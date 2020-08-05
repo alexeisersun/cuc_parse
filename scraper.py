@@ -75,30 +75,25 @@ if __name__ == "__main__":
         j = 0
         if num_cells == 8:
             # this row contains the name of the competition (spans multiple rows)
-            question_info["competition"] = str(cells[j].get_text().encode("utf-8"))
+            question_info["competition"] = cells[j].get_text()
             j += 1
 
         if cells[j].string:
-            question_info["stage"] = str(cells[j].string.encode("utf-8"))
+            question_info["stage"] = cells[j].string
         if cells[j + 1].string:
-            question_info["date"] = str(cells[j + 1].string.encode("utf-8"))
+            question_info["date"] = cells[j + 1].string
         if cells[j + 2].string:
-            question_info["authors"] = str(cells[j + 2].string.encode("utf-8"))
+            question_info["authors"] = cells[j + 2].string
         if cells[j + 3].string:
-            question_info["editor"] = str(cells[j + 3].string.encode("utf-8"))
+            question_info["editor"] = cells[j + 3].string
         if cells[j + 4].get_text():
-            question_info["number_of_questions"] = str(
-                cells[j + 4].get_text().encode("utf-8")
-            )
+            question_info["number_of_questions"] = cells[j + 4].get_text()
         if cells[j + 5].string:
-            question_info["level"] = str(cells[j + 5].string.encode("utf-8"))
+            question_info["level"] = cells[j + 5].string
 
         # sanitize
         for e in question_info.keys():
-            if question_info[e] is not None:
-                question_info[e] = re.sub(r"(\xc2\xa0|\xc2|\xa0|\n)", "", question_info[e])
-            else:
-                question_info[e] = ""
+            question_info[e] = re.sub(r"(\xc2\xa0|\xc2|\xa0|\n)", "", question_info[e])
 
         full_link = base_url + link
 

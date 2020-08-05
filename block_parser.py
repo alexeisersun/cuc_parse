@@ -4,9 +4,11 @@ import os
 import pickle
 import sys
 import json
-from logging import getLogger
+from logging import getLogger, StreamHandler
+import argparse
 
 logger = getLogger(__name__)
+logger.setLevel("INFO")
 
 question_pattern = re.compile(
     r"^((I|Î)ntrebare(a)?|#)?(:)?(\s)*((de)?\srezev[aă])?\d{1,2}(\s)*(;|\.|\-|:|\)?)?",
@@ -19,10 +21,14 @@ author_pattern = re.compile(r"^A(utor)?:\s*", re.I)
 hyperlink_pattern = re.compile(r"http(s)?://", re.I | re.M)
 
 map_categories = ["question", "answer", "comment", "source", "author", "unknown"]
+raw_txts_path = "./data/raw/txt"
+raw_txt_path = "./data/raw/txt/%s"
+blocky_txt_path = "./data/raw/txt/blocky/%s"
+metadata_path = "./data/metadata/%s"
 
 
-def add_lines_btw_blocks(f, verbose=False):
-    lines = f.readlines()
+def add_lines_between_blocks(file_handler):
+    lines = file_handler.readlines()
     for i in range(len(lines)):
         lines[i] = re.sub(r"^\s*", "", lines[i])
         if (
@@ -59,7 +65,6 @@ def get_blocks(lines):
         del empty_indices[i]
 
     # now empty_indices contains the indices of the lines that separate blocks of text
-    # logger.info(empty_indices)
     empty_indices.insert(0, -1)
     empty_indices.append(len(lines) - 1)
     blocks = []
@@ -76,8 +81,6 @@ def get_blocks(lines):
 
 
 def categorize_blocks(blocks):
-    # categorize each block
-    categories = [5 for b in blocks]
     """
     0: question
     1: answer
@@ -86,7 +89,7 @@ def categorize_blocks(blocks):
     4: author
     5: unknown
     """
-
+    categories = [5 for b in blocks]
     for i in range(len(blocks)):
         if re.match(question_pattern, blocks[i]):
             categories[i] = 0
@@ -176,67 +179,68 @@ def get_question_objects(blocks, categories):
     return question_objects
 
 
-def parse_file(filename, verbose=False):
+def parse_file(filename):
     name = filename.split("/")[-1]
-    sys.stdout.write("%s" % ("{:<30}".format(name)))
-    f = open(filename, "r")
-    file_with_blocks = open("./unprocessed/txt/blocky/%s" % name, "w+")
-    lines = add_lines_btw_blocks(f)
-    f.close()
-    file_with_blocks.write("".join(lines))
-    file_with_blocks.close()
-    f = open("./unprocessed/txt/blocky/%s" % name, "r")
-    info_f = open("./info/%s" % re.sub(r".txt$", ".info", name), "r")
-    info = pickle.load(info_f)
-    num_questions = int(info["number_of_questions"])
-    lines = f.readlines()
-    blocks = get_blocks(lines)
-    (blocks, categories) = categorize_blocks(blocks)
-    if verbose:
-        for i in range(len(blocks)):
-            logger.info(blocks[i])
-            logger.info("CATEGORY:   %s\n\n%s" % (categories[i], "*" * 80))
-    question_objects = get_question_objects(blocks, categories)
-    sys.stdout.write("%d/%d\n" % (len(question_objects), num_questions))
-    if verbose:
-        for q in question_objects:
-            logger.info(
-                "QUESTION     : %s\nANSWER       : %s\nCOMMENT      : %s\nSOURCE       : %s\nAUTHOR       : %s\n\n\
-                   *********************************************************************\n\n\
-                   "
-                % (q["question"], q["answer"], q["comment"], q["source"], q["authors"])
-            )
 
-    return (question_objects, num_questions)
+    with open(filename, "r") as file_without_blocks:
+        with open(blocky_txt_path % name, "w+") as file_with_blocks:
+            lines = add_lines_between_blocks(file_without_blocks)
+            file_with_blocks.write("".join(lines))
+
+    with open(blocky_txt_path % name, "r") as file_with_blocks:
+        with open(metadata_path % re.sub(r".txt$", ".info", name), "rb") as file_with_metadata:
+            info = pickle.load(file_with_metadata)
+            num_questions = int(info["number_of_questions"])
+            lines = file_with_blocks.readlines()
+            blocks = get_blocks(lines)
+            (blocks, categories) = categorize_blocks(blocks)
+            question_objects = get_question_objects(blocks, categories)
+            logger.info("Extracted {} out of {} questions from {}.".format(len(question_objects), num_questions, name))
+
+            return (question_objects, num_questions)
 
 
 def parse_all():
     total = 0
     successful = 0
     all_question_objects = []
-    for filename in os.listdir("./unprocessed/txt/"):
+    for filename in os.listdir(raw_txts_path):
         if not filename.endswith(".txt"):
             continue
-        (question_objects, num_questions) = parse_file(
-            "./unprocessed/txt/%s" % filename
-        )
+        (question_objects, num_questions) = parse_file(raw_txt_path % filename)
         all_question_objects.append(question_objects)
         total += num_questions
         successful += len(question_objects)
-    logger.info("%d/%d SUCCESSFUL" % (successful, total))
+    logger.info("Extracted %s out of %s questions." % (successful, total))
     return all_question_objects
 
 
 if __name__ == "__main__":
-    arguments = sys.argv
-    if arguments[1] == "all":
-        all_questions = parse_all()
-        with open("./unprocessed/processed/db.json", "w") as f:
-            json.dump(all_questions, f, indent=4, ensure_ascii=False)
+    logger.addHandler(StreamHandler(sys.stdout))
+    parser = argparse.ArgumentParser(description='Parse questions.')
+    parser.add_argument('--all', '-a', dest='all_files', action='store_true', help='parse all files.')
+    parser.add_argument('--in', nargs="*", type=str, dest='input_files', action='store', help='parse only selected files.')
+    parser.add_argument('--out', nargs=1, type=str, dest='output_file', action='store', help='parse only selected files.')
+
+    args = parser.parse_args()
+
+    parsed_data = []
+    if args.all_files:
+        parsed_data = parse_all()
+    elif args.input_files:
+        for filename in args.input_files:
+            if filename.endswith(".txt"):
+                (question_objects, num_questions) = parse_file(filename)
+                logger.info("Extracted %d out of %d questions." % (len(question_objects), num_questions))
+                parsed_data.append(question_objects)
+            else:
+                logger.warning("Must be a *.txt file!")
     else:
-        filename = arguments[1]
-        if not filename.endswith(".txt"):
-            logger.warning("Must be a *.txt file!")
-        else:
-            (question_objects, num_questions) = parse_file(filename, True)
-            logger.info("Parsed %d/%d questions!" % (len(question_objects), num_questions))
+        logger.warning("Must provide either '--all' or '--in FILE'.")
+        exit()
+
+    if args.output_file[0]:
+        with open(args.output_file[0], "w") as f:
+            json.dump(parsed_data, f)
+
+        logger.info("Saved parsed data to %s" % args.output_file[0])

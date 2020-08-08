@@ -7,7 +7,6 @@ verify_ssl = true
 
 [packages]
 bs4 = "*"
-urllib2 = "*"
 
 [requires]
 python_version = "3.6"

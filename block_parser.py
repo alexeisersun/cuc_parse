@@ -219,8 +219,8 @@ if __name__ == "__main__":
     logger.addHandler(StreamHandler(sys.stdout))
     parser = argparse.ArgumentParser(description='Parse questions.')
     parser.add_argument('--all', '-a', dest='all_files', action='store_true', help='parse all files.')
-    parser.add_argument('--in', nargs="*", type=str, dest='input_files', action='store', help='parse only selected files.')
-    parser.add_argument('--out', nargs=1, type=str, dest='output_file', action='store', help='parse only selected files.')
+    parser.add_argument('--in', '-i', nargs="*", type=str, dest='input_files', action='store', help='parse only selected files.')
+    parser.add_argument('--out', '-o', nargs=1, type=str, dest='output_file', action='store', help='parse only selected files.')
 
     args = parser.parse_args()
 

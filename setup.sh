@@ -64,12 +64,7 @@ do
 done
 
 echo "***** Remove empty text documents ******"
-for file in ./data/raw/txt/*
-do
-    if [ -f $file ];
-    then
-        wc -l $file | grep '^0\s\(.*\)' | sed 's/^0\s//g' | xargs -I {} mv {} ./data/raw/txt/empty
-    fi
-done
+
+find ./data/raw/txt -maxdepth 1 -name '*.txt' | xargs egrep -iL '\w+' | xargs mv -t ./data/raw/txt/empty
 
 echo "***** Done ******"
